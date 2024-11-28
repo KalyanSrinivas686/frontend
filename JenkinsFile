@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    environment {
+        NODE_HOME = tool name: 'NodeJS'
+        PATH = "${NODE_HOME}/bin:${env.PATH}"
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Clone the Git repository
+                git branch: 'main', url: 'https://github.com/username/my-angular-app.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                // Install Angular dependencies
+                sh 'npm install'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                // Run Angular tests
+                sh 'npm run test -- --watch=false --browsers=ChromeHeadless'
+            }
+        }
+        stage('Build Application') {
+            steps {
+                // Build the Angular application
+                sh 'npm run build -- --prod'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                // Deploy built files (e.g., copy to a server or an artifact repository)
+                sh '''
+                mkdir -p /var/www/html/my-angular-app
+                cp -r dist/my-angular-app/* /var/www/html/my-angular-app/
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            // Clean up workspace after build
+            cleanWs()
+        }
+        success {
+            echo 'Build and deployment successful!'
+        }
+        failure {
+            echo 'Build or deployment failed.'
+        }
+    }
+}
